@@ -1,103 +1,269 @@
-import Image from "next/image";
 
-export default function Home() {
+'use client';
+
+import { useQuestionState } from '../hooks/useQuestionState';
+import { QuestionCard } from '../components/questionnaire/QuestionCard';
+import { ProgressBar } from '../components/questionnaire/ProgressBar';
+import { ScoreDisplay } from '../components/results/ScoreDisplay';
+import { IdeologyMatchComponent } from '../components/results/IdeologyMatch';
+
+// Landing Page Component
+function LandingPage({ onStart }: { onStart: () => void }) {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="max-w-4xl mx-auto text-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-12">
+          {/* Logo/Title */}
+          <div className="mb-8">
+            <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-4">
+              🏛️ PoliticVision
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              Découvrez votre positionnement politique à travers un questionnaire de 20 questions
+            </p>
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* Features */}
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="p-4">
+              <div className="text-3xl mb-2">📊</div>
+              <h3 className="font-semibold text-gray-800 mb-1">Analyse Multi-axe</h3>
+              <p className="text-sm text-gray-600">Économique, social, autorité, environnement</p>
+            </div>
+            <div className="p-4">
+              <div className="text-3xl mb-2">🎯</div>
+              <h3 className="font-semibold text-gray-800 mb-1">Correspondance Idéologique</h3>
+              <p className="text-sm text-gray-600">Trouvez votre famille politique</p>
+            </div>
+            <div className="p-4">
+              <div className="text-3xl mb-2">🔗</div>
+              <h3 className="font-semibold text-gray-800 mb-1">Partage de Résultats</h3>
+              <p className="text-sm text-gray-600">Comparez avec vos proches</p>
+            </div>
+          </div>
+
+          {/* Start Button */}
+          <button
+            onClick={onStart}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Commencer le questionnaire
+          </button>
+
+          {/* Info */}
+          <p className="text-sm text-gray-500 mt-4">
+            ⏱️ Temps estimé : 5-10 minutes • 📱 Compatible mobile
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      </div>
+    </div>
+  );
+}
+
+// Questionnaire Page Component
+function QuestionnairePage({
+  currentQuestion,
+  currentQuestionIndex,
+  currentResponse,
+  totalQuestions,
+  answeredQuestions,
+  onResponse,
+  onNext
+}: {
+  currentQuestion: any;
+  currentQuestionIndex: number;
+  currentResponse: number;
+  totalQuestions: number;
+  answeredQuestions: number;
+  onResponse: (value: number) => void;
+  onNext: () => void;
+}) {
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">❓</div>
+          <h2 className="text-2xl font-bold text-gray-800">Question non trouvée</h2>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header avec progression */}
+      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto p-4">
+          <ProgressBar
+            current={currentQuestionIndex}
+            total={totalQuestions}
+            answeredQuestions={answeredQuestions}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="py-8">
+        <QuestionCard
+          question={currentQuestion}
+          questionNumber={currentQuestionIndex}
+          totalQuestions={totalQuestions}
+          currentResponse={currentResponse as any}
+          onResponse={onResponse as any}
+          onNext={onNext}
+          isLastQuestion={currentQuestionIndex >= totalQuestions}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Results Page Component
+function ResultsPage({ 
+  onReset, 
+  score, 
+  ideologyMatches 
+}: { 
+  onReset: () => void;
+  score: any;
+  ideologyMatches: any;
+}) {
+  if (!score || !ideologyMatches) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 p-4 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
+          <div className="text-6xl mb-4">⏳</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Calcul en cours...
+          </h2>
+          <p className="text-gray-600">
+            Analyse de vos réponses en cours
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+      <div className="max-w-6xl mx-auto py-8 px-4">
+        {/* Header de félicitations */}
+        <div className="text-center mb-12">
+          <div className="text-6xl mb-4">🎉</div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            Félicitations !
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Vous avez terminé le questionnaire. Découvrez votre profil politique personnalisé.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-5 gap-8">
+          {/* Scores politiques */}
+          <div className="lg:col-span-3">
+            <ScoreDisplay score={score} />
+          </div>
+
+          {/* Correspondances idéologiques */}
+          <div className="lg:col-span-2">
+            <IdeologyMatchComponent 
+              matches={ideologyMatches} 
+              onRestart={onReset}
+            />
+          </div>
+        </div>
+
+        {/* Actions globales */}
+        <div className="mt-12 text-center">
+          <div className="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              🗳️ Et maintenant ?
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-semibold text-blue-800 mb-2">📚 Approfondissez</h4>
+                <p className="text-blue-700">
+                  Explorez les idéologies politiques qui vous correspondent
+                </p>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <h4 className="font-semibold text-green-800 mb-2">🤝 Partagez</h4>
+                <p className="text-green-700">
+                  Comparez vos résultats avec vos proches et amis
+                </p>
+              </div>
+            </div>
+            
+            <button
+              onClick={onReset}
+              className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+            >
+              🔄 Refaire le questionnaire
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main App Component
+export default function Home() {
+  const {
+    isLanding,
+    isQuestionnaire,
+    isComplete,
+    currentQuestion,
+    currentQuestionIndex,
+    currentResponse,
+    totalQuestions,
+    answeredQuestions,
+    score,
+    ideologyMatches,
+    startQuestionnaire,
+    setResponse,
+    nextQuestion,
+    resetQuestionnaire
+  } = useQuestionState();
+
+  // Landing state
+  if (isLanding) {
+    return <LandingPage onStart={startQuestionnaire} />;
+  }
+
+  // Results state  
+  if (isComplete) {
+    return (
+      <ResultsPage
+        onReset={resetQuestionnaire}
+        score={score}
+        ideologyMatches={ideologyMatches}
+      />
+    );
+  }
+
+  // Questionnaire state
+  if (isQuestionnaire) {
+    return (
+      <QuestionnairePage
+        currentQuestion={currentQuestion}
+        currentQuestionIndex={currentQuestionIndex}
+        currentResponse={currentResponse}
+        totalQuestions={totalQuestions}
+        answeredQuestions={answeredQuestions}
+        onResponse={setResponse}
+        onNext={nextQuestion}
+      />
+    );
+  }
+
+  // Fallback
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="text-4xl mb-4">⏳</div>
+        <p>Chargement...</p>
+      </div>
     </div>
   );
 }
