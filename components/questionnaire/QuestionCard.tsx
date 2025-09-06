@@ -29,9 +29,8 @@ export function QuestionCard({
     onResponse(value);
     setIsTransitioning(true);
     
-    // Délai plus court pour "Ne se prononce pas" (300ms)
-    // Délai normal pour les autres réponses (500ms)
-    const delay = value === 0 ? 300 : 500;
+    // Délai uniforme très court (100ms)
+    const delay = 100;
     
     setTimeout(() => {
       onNext();
@@ -81,7 +80,7 @@ export function QuestionCard({
   };
 
   return (
-    <div className={`max-w-4xl mx-auto p-6 transition-all duration-300 ${isTransitioning ? 'opacity-75 scale-98' : ''}`}>
+    <div className="max-w-4xl mx-auto p-6">
       {/* Header avec numéro de question */}
       <div className="text-center mb-8">
         <div className="text-sm text-gray-500 mb-2">
